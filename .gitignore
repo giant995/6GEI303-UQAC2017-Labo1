@@ -5,6 +5,7 @@
 
 ## Ignore user sepecif things
 *.sln
+*.vcxproj
 *.vcxproj.*
 
 # User-specific files
