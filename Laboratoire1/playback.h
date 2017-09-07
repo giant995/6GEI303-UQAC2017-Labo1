@@ -22,6 +22,13 @@ public:
 
 	HRESULT result;
 
+	HRESULT InitCOM();
+	HRESULT InitGraph();
+	HRESULT QueryInterface();
+	HRESULT BuildGraph(LPCWSTR filePath);
+	HRESULT RunGraph();
+	void Cleanup();
+
 	HRESULT Play();
 	HRESULT Pause();
 	HRESULT FastForward();
