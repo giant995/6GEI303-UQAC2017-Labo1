@@ -1,6 +1,7 @@
 // For infos and legals, see EOF
 
 #include <dshow.h>
+#include "playback.h"
 
 #pragma comment(lib, "Strmiids.lib")
 
@@ -26,6 +27,8 @@ LPCWSTR charToLPCWSTR(char * message)
 
 int main(int argc, char * argv[])
 {
+	Playback Playback;
+
 	// Pointer to important data structures 
 	IGraphBuilder * pGraph = NULL;
 	IMediaControl * pControl = NULL;
