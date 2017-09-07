@@ -12,15 +12,22 @@ enum PlaybackState
 
 class Playback
 {
-public:
-	Playback();
-	~Playback();
-
+private:
 	IGraphBuilder * graph;
 	IMediaControl * control;
 	IMediaEvent   * event;
 
 	HRESULT result;
+
+	HRESULT Play();
+	HRESULT Pause();
+	HRESULT FastForward();
+	HRESULT Restart();
+	HRESULT Stop();
+
+public:
+	Playback();
+	~Playback();
 
 	HRESULT InitCOM();
 	HRESULT InitGraph();
@@ -28,10 +35,4 @@ public:
 	HRESULT BuildGraph(LPCWSTR filePath);
 	HRESULT RunGraph();
 	void Cleanup();
-
-	HRESULT Play();
-	HRESULT Pause();
-	HRESULT FastForward();
-	HRESULT Restart();
-	HRESULT Stop();
 };
