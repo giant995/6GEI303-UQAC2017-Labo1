@@ -166,7 +166,7 @@ HRESULT Playback::OnChar(char ch)
 			return Help();
 
 		default:
-			printf("Please use a valid action! or type 'h' for help!\n\n");
+			printf("Please use a valid action or type 'H' for help!\n\n");
 			return S_OK;
 	}
 }
