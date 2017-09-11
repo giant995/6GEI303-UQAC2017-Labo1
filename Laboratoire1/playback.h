@@ -1,4 +1,4 @@
-# pragma once
+#pragma once
 
 #include <dshow.h>
 
@@ -18,20 +18,25 @@ private:
 	IMediaEvent   * event;
 
 	HRESULT result;
+	PlaybackState state;
 
-	HRESULT Play();
-	HRESULT Pause();
+	HRESULT OnChar(char ch);
+
+	HRESULT PlayPause();
 	HRESULT FastForward();
 	HRESULT Restart();
 	HRESULT Stop();
-
-public:
-	Playback();
-	~Playback();
+	HRESULT Help();
 
 	HRESULT InitCOM();
 	HRESULT InitGraph();
 	HRESULT QueryInterface();
 	HRESULT BuildGraph(LPCWSTR filePath);
 	HRESULT RunGraph();
+
+public:
+	Playback();
+	~Playback();
+
+	void RunVideo(LPCWSTR filePath);
 };

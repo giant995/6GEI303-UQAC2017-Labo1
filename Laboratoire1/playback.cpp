@@ -1,7 +1,5 @@
-#include <dshow.h>
 #include <conio.h>
 #include "playback.h"
-
 
 Playback::Playback()
 {
@@ -10,6 +8,10 @@ Playback::Playback()
 	IMediaEvent   * event = NULL;
 
 	HRESULT result = NULL;
+
+	InitCOM();
+	InitGraph();
+	QueryInterface();
 }
 
 Playback::~Playback()
@@ -20,6 +22,12 @@ Playback::~Playback()
 	CoUninitialize();
 
 	printf("SUCCESS - Cleanup successufully executed\n");
+}
+
+void Playback::RunVideo(LPCWSTR filePath)
+{
+	BuildGraph(filePath);
+	RunGraph();
 }
 
 HRESULT Playback::InitCOM()
@@ -129,7 +137,7 @@ HRESULT Playback::RunGraph()
 				int ch = _getch();
 				if (ch)
 				{
-					printf("Something happened!");
+					OnChar(ch);
 				}
 
 				event->WaitForCompletion(1, &evCode);
@@ -145,27 +153,63 @@ HRESULT Playback::RunGraph()
 	return result;
 }
 
-HRESULT Playback::Play()
+HRESULT Playback::OnChar(char ch)
 {
-	return E_NOTIMPL;
+	switch (ch) {
+		case 'p':
+		case 'P':
+			return PlayPause();
+
+		case 'a':
+		case 'A':
+			return FastForward();
+
+		case 'r':
+		case 'R':
+			return Restart();
+
+		case 'q':
+		case 'Q':
+			return Stop();
+
+		case 'h':
+		case 'H':
+			return Help();
+
+		default:
+			printf("Please use a valid action! or type 'h' for help!\n");
+			return -1;
+	}
 }
 
-HRESULT Playback::Pause()
+HRESULT Playback::PlayPause()
 {
+	printf("PlayPause\n");
+	control->Pause();
 	return E_NOTIMPL;
 }
 
 HRESULT Playback::FastForward()
 {
+	printf("FastForward\n");
+	control->Run();
 	return E_NOTIMPL;
 }
 
 HRESULT Playback::Restart()
 {
+	printf("Restart\n");
 	return E_NOTIMPL;
 }
 
 HRESULT Playback::Stop()
 {
+	printf("Stop\n");
+	return E_NOTIMPL;
+}
+
+HRESULT Playback::Help()
+{
+	printf("Help\n");
 	return E_NOTIMPL;
 }
