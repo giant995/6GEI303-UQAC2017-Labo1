@@ -14,7 +14,6 @@ int main(int argc, char * argv[])
 	Playback.QueryInterface();
 	Playback.BuildGraph(L"C:\\users\\mukki\\Downloads\\Example.avi");
 	Playback.RunGraph();
-	Playback.Cleanup();
 
 	return 0;
 }

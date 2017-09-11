@@ -1,5 +1,7 @@
 #include <dshow.h>
+#include <conio.h>
 #include "playback.h"
+
 
 Playback::Playback()
 {
@@ -12,7 +14,12 @@ Playback::Playback()
 
 Playback::~Playback()
 {
-	
+	control->Release();
+	event->Release();
+	graph->Release();
+	CoUninitialize();
+
+	printf("SUCCESS - Cleanup successufully executed\n");
 }
 
 HRESULT Playback::InitCOM()
@@ -117,7 +124,16 @@ HRESULT Playback::RunGraph()
 			printf("INFO - Waiting for event completion\n");
 
 			long evCode;
-			event->WaitForCompletion(INFINITE, &evCode);
+
+			while (true) {
+				int ch = _getch();
+				if (ch)
+				{
+					printf("Something happened!");
+				}
+
+				event->WaitForCompletion(1, &evCode);
+			}
 
 			// Note: Do not use INFINITE in a real application, because it
 			// can block indefinitely.
@@ -127,16 +143,6 @@ HRESULT Playback::RunGraph()
 	printf("INFO - Event completed\n");
 
 	return result;
-}
-
-void Playback::Cleanup()
-{
-	control->Release();
-	event->Release();
-	graph->Release();
-	CoUninitialize();
-
-	printf("SUCCESS - Cleanup successufully executed\n");
 }
 
 HRESULT Playback::Play()
