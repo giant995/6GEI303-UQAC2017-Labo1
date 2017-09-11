@@ -1,15 +1,20 @@
-#include <dshow.h>
 #include <conio.h>
 #include "playback.h"
-
 
 Playback::Playback()
 {
 	IGraphBuilder * graph = NULL;
 	IMediaControl * control = NULL;
 	IMediaEvent   * event = NULL;
+	IMediaSeeking * seek = NULL;
 
 	HRESULT result = NULL;
+
+	PlaybackState state = STATE_NO_GRAPH;
+
+	InitCOM();
+	InitGraph();
+	QueryInterface();
 }
 
 Playback::~Playback()
@@ -18,8 +23,12 @@ Playback::~Playback()
 	event->Release();
 	graph->Release();
 	CoUninitialize();
+}
 
-	printf("SUCCESS - Cleanup successufully executed\n");
+void Playback::RunVideo(LPCWSTR filePath)
+{
+	BuildGraph(filePath);
+	RunGraph();
 }
 
 HRESULT Playback::InitCOM()
@@ -29,11 +38,6 @@ HRESULT Playback::InitCOM()
 	if (FAILED(result))
 	{
 		printf("ERROR - Could not initialize the COM library\n");
-	}
-
-	if (SUCCEEDED(result))
-	{
-		printf("SUCCESS - COM library initialized\n");
 	}
 
 	return result;
@@ -49,11 +53,6 @@ HRESULT Playback::InitGraph()
 		printf("ERROR - Could not create the Filter Graph Manager\n");
 	}
 
-	if (SUCCEEDED(result))
-	{
-		printf("SUCCESS - Filter Graph Manager created\n");
-	}
-
 	return result;
 }
 
@@ -63,19 +62,21 @@ HRESULT Playback::QueryInterface()
 
 	if (FAILED(result))
 	{
-		printf("ERROR - Could not query the interface\n");
+		printf("ERROR - Could not query the control\n");
 	}
 
 	result = graph->QueryInterface(IID_IMediaEvent, (void **)&event);
 
 	if (FAILED(result))
 	{
-		printf("ERROR - Could not create the Filter Graph Manager\n");
+		printf("ERROR - Could not create the event\n");
 	}
 
-	if (SUCCEEDED(result))
+	result = graph->QueryInterface(IID_IMediaSeeking, (void **)&seek);
+
+	if (FAILED(result))
 	{
-		printf("SUCCESS - Interface successufully queried\n");
+		printf("ERROR - Could not create the seek\n");
 	}
 
 	return result;
@@ -92,7 +93,7 @@ HRESULT Playback::BuildGraph(LPCWSTR filePath)
 
 	if (SUCCEEDED(result))
 	{
-		printf("SUCCESS - Graph successfully generated\n");
+		state = STATE_STOPPED;
 	}
 
 	return result;
@@ -108,8 +109,6 @@ HRESULT Playback::RunGraph()
 
 	if (SUCCEEDED(result))
 	{
-		printf("SUCCESS - Running the graph\n");
-
 		result = control->Run();
 
 		if (FAILED(result))
@@ -119,17 +118,17 @@ HRESULT Playback::RunGraph()
 
 		if (SUCCEEDED(result))
 		{
-			printf("SUCCESS - The run was successufully started\n");
+			state = STATE_RUNNING;
 
-			printf("INFO - Waiting for event completion\n");
+			Help();
 
 			long evCode;
 
-			while (true) {
+			while (state != STATE_STOPPED) {
 				int ch = _getch();
 				if (ch)
 				{
-					printf("Something happened!");
+					OnChar(ch);
 				}
 
 				event->WaitForCompletion(1, &evCode);
@@ -140,32 +139,138 @@ HRESULT Playback::RunGraph()
 		}
 	}
 
-	printf("INFO - Event completed\n");
-
 	return result;
 }
 
-HRESULT Playback::Play()
+HRESULT Playback::OnChar(char ch)
 {
-	return E_NOTIMPL;
+	switch (ch) {
+		case 'p':
+		case 'P':
+			return PlayPause();
+
+		case 'a':
+		case 'A':
+			return FastForward();
+
+		case 'r':
+		case 'R':
+			return Restart();
+
+		case 'q':
+		case 'Q':
+			return Stop();
+
+		case 'h':
+		case 'H':
+			return Help();
+
+		default:
+			printf("Please use a valid action! or type 'h' for help!\n\n");
+			return S_OK;
+	}
 }
 
-HRESULT Playback::Pause()
+HRESULT Playback::PlayPause()
 {
-	return E_NOTIMPL;
+	if (state == STATE_RUNNING)
+	{
+		result = control->Pause();
+
+		if (FAILED(result))
+		{
+			printf("ERROR - Could not pause the video\n");
+		}
+
+		if (SUCCEEDED(result))
+		{
+			state = STATE_PAUSED;
+		}
+
+		return result;
+	}
+		
+	if (state == STATE_PAUSED)
+	{
+		result = control->Run();
+
+		if (FAILED(result))
+		{
+			printf("ERROR - Could not run the video\n");
+		}
+
+		if (SUCCEEDED(result))
+		{
+			state = STATE_RUNNING;
+		}
+
+		return result;
+	}
+
+	if (state == STATE_STOPPED)
+	{
+		printf("ERROR - Wrong state while executing PlayPause()\n");
+		result = VFW_E_WRONG_STATE;
+	}
 }
 
 HRESULT Playback::FastForward()
 {
-	return E_NOTIMPL;
+	double rate;
+	seek->GetRate(&rate);
+
+	if (rate == 1.0)
+	{
+		result = seek->SetRate(2.0);
+
+		if (FAILED(result))
+		{
+			printf("ERROR - Could not set the rate to 2.0\n");
+		}
+
+		return result;
+	}
+
+	if (rate == 2.0)
+	{
+		result = seek->SetRate(1.0);
+
+		if (FAILED(result))
+		{
+			printf("ERROR - Could not set the rate to 1.0\n");
+		}
+
+		return result;
+	}
 }
 
 HRESULT Playback::Restart()
 {
-	return E_NOTIMPL;
+	LONGLONG start = 0;
+	LONGLONG stop = INFINITE;
+	result = seek->SetPositions(&start, AM_SEEKING_AbsolutePositioning, &stop, AM_SEEKING_IncrementalPositioning);
+	
+	if (FAILED(result))
+	{
+		printf("ERROR - Could not restart the graph\n");
+	}
+
+	return result;
 }
 
 HRESULT Playback::Stop()
 {
-	return E_NOTIMPL;
+	state = STATE_STOPPED;
+	return S_OK;
+}
+
+HRESULT Playback::Help()
+{
+	printf("Help:\n");
+	printf("P: Play or pause\n");
+	printf("A: Speed up playback or return to the normal rate\n");
+	printf("R: Restart the video\n");
+	printf("Q: Quit the video\n");
+	printf("H: Show this message\n\n");
+	return S_OK;
 }
