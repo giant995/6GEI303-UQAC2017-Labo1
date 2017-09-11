@@ -34,5 +34,4 @@ public:
 	HRESULT QueryInterface();
 	HRESULT BuildGraph(LPCWSTR filePath);
 	HRESULT RunGraph();
-	void Cleanup();
 };
