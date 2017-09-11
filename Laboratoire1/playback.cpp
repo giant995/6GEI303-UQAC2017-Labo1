@@ -9,6 +9,8 @@ Playback::Playback()
 
 	HRESULT result = NULL;
 
+	PlaybackState state = STATE_NO_GRAPH;
+
 	InitCOM();
 	InitGraph();
 	QueryInterface();
@@ -20,8 +22,6 @@ Playback::~Playback()
 	event->Release();
 	graph->Release();
 	CoUninitialize();
-
-	printf("SUCCESS - Cleanup successufully executed\n");
 }
 
 void Playback::RunVideo(LPCWSTR filePath)
@@ -39,11 +39,6 @@ HRESULT Playback::InitCOM()
 		printf("ERROR - Could not initialize the COM library\n");
 	}
 
-	if (SUCCEEDED(result))
-	{
-		printf("SUCCESS - COM library initialized\n");
-	}
-
 	return result;
 }
 
@@ -55,11 +50,6 @@ HRESULT Playback::InitGraph()
 	if (FAILED(result))
 	{
 		printf("ERROR - Could not create the Filter Graph Manager\n");
-	}
-
-	if (SUCCEEDED(result))
-	{
-		printf("SUCCESS - Filter Graph Manager created\n");
 	}
 
 	return result;
@@ -81,11 +71,6 @@ HRESULT Playback::QueryInterface()
 		printf("ERROR - Could not create the Filter Graph Manager\n");
 	}
 
-	if (SUCCEEDED(result))
-	{
-		printf("SUCCESS - Interface successufully queried\n");
-	}
-
 	return result;
 }
 
@@ -100,7 +85,7 @@ HRESULT Playback::BuildGraph(LPCWSTR filePath)
 
 	if (SUCCEEDED(result))
 	{
-		printf("SUCCESS - Graph successfully generated\n");
+		state = STATE_STOPPED;
 	}
 
 	return result;
@@ -116,8 +101,6 @@ HRESULT Playback::RunGraph()
 
 	if (SUCCEEDED(result))
 	{
-		printf("SUCCESS - Running the graph\n");
-
 		result = control->Run();
 
 		if (FAILED(result))
@@ -127,13 +110,11 @@ HRESULT Playback::RunGraph()
 
 		if (SUCCEEDED(result))
 		{
-			printf("SUCCESS - The run was successufully started\n");
-
-			printf("INFO - Waiting for event completion\n");
+			state = STATE_RUNNING;
 
 			long evCode;
 
-			while (true) {
+			while (state != STATE_STOPPED) {
 				int ch = _getch();
 				if (ch)
 				{
@@ -147,8 +128,6 @@ HRESULT Playback::RunGraph()
 			// can block indefinitely.
 		}
 	}
-
-	printf("INFO - Event completed\n");
 
 	return result;
 }
@@ -184,9 +163,45 @@ HRESULT Playback::OnChar(char ch)
 
 HRESULT Playback::PlayPause()
 {
-	printf("PlayPause\n");
-	control->Pause();
-	return E_NOTIMPL;
+	if (state == STATE_RUNNING)
+	{
+		result = control->Pause();
+
+		if (FAILED(result))
+		{
+			printf("ERROR - Could not pause the video\n");
+		}
+
+		if (SUCCEEDED(result))
+		{
+			state = STATE_PAUSED;
+		}
+
+		return result;
+	}
+		
+	if (state == STATE_PAUSED)
+	{
+		result = control->Run();
+
+		if (FAILED(result))
+		{
+			printf("ERROR - Could not run the video\n");
+		}
+
+		if (SUCCEEDED(result))
+		{
+			state = STATE_RUNNING;
+		}
+
+		return result;
+	}
+
+	if (state == STATE_STOPPED)
+	{
+		printf("ERROR - Wrong state while executing PlayPause()\n");
+		result = VFW_E_WRONG_STATE;
+	}
 }
 
 HRESULT Playback::FastForward()
