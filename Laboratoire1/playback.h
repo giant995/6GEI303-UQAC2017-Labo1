@@ -16,6 +16,7 @@ private:
 	IGraphBuilder * graph;
 	IMediaControl * control;
 	IMediaEvent   * event;
+	IMediaSeeking * seek;
 
 	HRESULT result;
 	PlaybackState state;

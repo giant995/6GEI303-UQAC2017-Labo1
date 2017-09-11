@@ -6,6 +6,7 @@ Playback::Playback()
 	IGraphBuilder * graph = NULL;
 	IMediaControl * control = NULL;
 	IMediaEvent   * event = NULL;
+	IMediaSeeking * seek = NULL;
 
 	HRESULT result = NULL;
 
@@ -61,14 +62,21 @@ HRESULT Playback::QueryInterface()
 
 	if (FAILED(result))
 	{
-		printf("ERROR - Could not query the interface\n");
+		printf("ERROR - Could not query the control\n");
 	}
 
 	result = graph->QueryInterface(IID_IMediaEvent, (void **)&event);
 
 	if (FAILED(result))
 	{
-		printf("ERROR - Could not create the Filter Graph Manager\n");
+		printf("ERROR - Could not create the event\n");
+	}
+
+	result = graph->QueryInterface(IID_IMediaSeeking, (void **)&seek);
+
+	if (FAILED(result))
+	{
+		printf("ERROR - Could not create the seek\n");
 	}
 
 	return result;
@@ -206,9 +214,32 @@ HRESULT Playback::PlayPause()
 
 HRESULT Playback::FastForward()
 {
-	printf("FastForward\n");
-	control->Run();
-	return E_NOTIMPL;
+	double rate;
+	seek->GetRate(&rate);
+
+	if (rate == 1.0)
+	{
+		result = seek->SetRate(2.0);
+
+		if (FAILED(result))
+		{
+			printf("ERROR - Could not set the rate to 2.0\n");
+		}
+
+		return result;
+	}
+
+	if (rate == 2.0)
+	{
+		result = seek->SetRate(1.0);
+
+		if (FAILED(result))
+		{
+			printf("ERROR - Could not set the rate to 1.0\n");
+		}
+
+		return result;
+	}
 }
 
 HRESULT Playback::Restart()
