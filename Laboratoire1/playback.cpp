@@ -120,6 +120,8 @@ HRESULT Playback::RunGraph()
 		{
 			state = STATE_RUNNING;
 
+			Help();
+
 			long evCode;
 
 			while (state != STATE_STOPPED) {
@@ -164,8 +166,8 @@ HRESULT Playback::OnChar(char ch)
 			return Help();
 
 		default:
-			printf("Please use a valid action! or type 'h' for help!\n");
-			return -1;
+			printf("Please use a valid action! or type 'h' for help!\n\n");
+			return S_OK;
 	}
 }
 
@@ -244,18 +246,31 @@ HRESULT Playback::FastForward()
 
 HRESULT Playback::Restart()
 {
-	printf("Restart\n");
-	return E_NOTIMPL;
+	LONGLONG start = 0;
+	LONGLONG stop = INFINITE;
+	result = seek->SetPositions(&start, AM_SEEKING_AbsolutePositioning, &stop, AM_SEEKING_IncrementalPositioning);
+	
+	if (FAILED(result))
+	{
+		printf("ERROR - Could not restart the graph\n");
+	}
+
+	return result;
 }
 
 HRESULT Playback::Stop()
 {
-	printf("Stop\n");
-	return E_NOTIMPL;
+	state = STATE_STOPPED;
+	return S_OK;
 }
 
 HRESULT Playback::Help()
 {
-	printf("Help\n");
-	return E_NOTIMPL;
+	printf("Help:\n");
+	printf("P: Play or pause\n");
+	printf("A: Speed up playback or return to the normal rate\n");
+	printf("R: Restart the video\n");
+	printf("Q: Quit the video\n");
+	printf("H: Show this message\n\n");
+	return S_OK;
 }
