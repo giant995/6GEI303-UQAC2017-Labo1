@@ -7,6 +7,11 @@ Ce logiciel simple permet la lecture d'une vidéo entrée dans le code source du
 programme et de contrôler la lecture de la vidéo au moyen des touches du
 clavier.
 
+# Comment exécuter le programme?
+
+Ouvrir le fichier 'Laboratoire1.sln', exécuter l'application sans débogage
+(ctrl+F5). 
+
 # Quelles sont les fonctionnalités du programme?
 
 - Lecture et arrêt de la vidéo au moyen de la touche 'P'
